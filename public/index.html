@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>COLOR CODER</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+
+  <header class="logo">
+    <h1><span class="red">C</span><span class="blue">O</span><span class="green">L</span><span class="yellow">O</span><span class="violet">R</span> CODER</h1>
+  </header>
+
+  <main class="palette-main">
+    <div class="palette-container">
+      <div class="left-color main-color">
+        <p class="left-p color-p"></p>
+        <i class="fas fa-unlock left-lock"></i>
+      </div>
+      <div class="mid-left-color main-color">
+        <p class="mid-left-p color-p"></p>
+        <i class="fas fa-unlock mid-left-lock"></i>
+      </div>
+      <div class="mid-color main-color">
+        <p class="mid-p color-p"></p>
+        <i class="fas fa-unlock mid-lock"></i></div>
+      <div class="mid-right-color main-color">
+        <p class="mid-right-p color-p"></p>
+        <i class="fas fa-unlock mid-right-lock"></i></div>
+      <div class="right-color main-color">
+        <p class="right-p color-p"></p>
+        <i class="fas fa-unlock right-lock"></i>
+      </div>
+    </div>
+  </main>
+
+  <section class="control-form-container">
+    <button class="generate">REGENERATE PALETTE</button>
+    <select class="dropdown">
+      <option>PICK PREVIOUS PROJECT</option>
+      <option data-id="1">Project 1</option>
+      <option data-id="2">Project 2</option>
+    </select>
+    <input class="user-palette-name-input" type="text" placeholder="NAME YOUR PALETTE" />
+    <button class="save-btn">SAVE PALETTE</button>
+    <input class="new-project-name-input" type="text" placeholder="NEW PROJECT NAME" />
+    <button class="new-project-btn">SAVE NEW PROJECT</button>
+  </section>
+
+
+  <div class="page-break"></div>
+
+
+  <section class="project-container">
+
+    <div class="project-card">
+      <h3>Project 1</h3>
+      <section class="card-palette-container">
+        <div class="project-palette">
+          <label>Warm</label>
+          <section class="project-card-palette-container">
+            <div class="sub-container">
+              <div class="sub" data-id="1">
+                <div class="left-card-color card-color"></div>
+                <div class="mid-card-left-color card-color"></div>
+                <div class="mid-card-color card-color"></div>
+                <div class="mid-card-right-color card-color"></div>
+                <div class="right-card-color card-color"></div>
+              </div>
+              <i class="fas fa-trash-alt"></i>
+            </div>
+          </section>
+        </div>
+        <div class="project-palette">
+          <label>Cold</label>
+          <section class="project-card-palette-container">
+            <div class="sub-container">
+                <div class="sub" data-id="2">
+                  <div class="left-card-color card-color"></div>
+                  <div class="mid-card-left-color card-color"></div>
+                  <div class="mid-card-color card-color"></div>
+                  <div class="mid-card-right-color card-color"></div>
+                  <div class="right-card-color card-color"></div>
+                </div>
+                <i class="fas fa-trash-alt"></i>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <div class="project-card">
+      <h3>Project 2</h3>
+      <section class="card-palette-container">
+        <div class="project-palette">
+          <label>Warm</label>
+          <section class="project-card-palette-container">
+            <div class="sub-container">
+                <div class="sub" data-id="3">
+                  <div class="left-card-color card-color"></div>
+                  <div class="mid-card-left-color card-color"></div>
+                  <div class="mid-card-color card-color"></div>
+                  <div class="mid-card-right-color card-color"></div>
+                  <div class="right-card-color card-color"></div>
+                </div>
+                <i class="fas fa-trash-alt"></i>
+            </div>
+          </section>
+        </div>
+        <div class="project-palette">
+          <label>Cold</label>
+          <section class="project-card-palette-container">
+            <div class="sub-container">
+                <div class="sub" data-id="4">
+                  <div class="left-card-color card-color"></div>
+                  <div class="mid-card-left-color card-color"></div>
+                  <div class="mid-card-color card-color"></div>
+                  <div class="mid-card-right-color card-color"></div>
+                  <div class="right-card-color card-color"></div>
+                </div>
+                <i class="fas fa-trash-alt"></i>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+  </section>
+  <script type="text/javascript" src="script.js"></script>
+</body>
+</html>
