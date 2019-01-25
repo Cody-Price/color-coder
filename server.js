@@ -1,5 +1,13 @@
+const environment = process.env.NODE_ENV || 'development';
+//set environment to be either the node environment or development
+const configuration = require('./knexfile.js')[environment];
+//setting the configuration of the database based on the current environment
+const database = require('knex')(configuration);
+//applies the correct configuration to the database
 const express = require('express');
+//imports express and assigns it to the variable 'express'
 const app = express();
+//sets up our app using the express function
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json())
@@ -66,60 +74,121 @@ app.locals.palettes = [
 ]
 
 
-app.get('/palettes', (request, response) => {
-  //should return an array of all palettes
-  response.status(200).json(app.locals.palettes)
-})
+app.get('/api/v1/palettes', (request, response) => {
+  database('palettes').select()
+    .then(palettes => {
+      response.status(200).json({ palettes })
+    })
+    .catch(error => {
+      response.sendStatus(500).json({ error })
+    });
+});
 
-app.get('/palettes/:id', (request, response) => {
-  //should return a specific palette
+app.get('/api/v1/palettes/:id', (request, response) => {
   const { id } = request.params
-  let foundPalette = app.locals.palettes.find(palette => parseInt(id) === palette.id)
-  if (foundPalette) {
-    response.status(200).json(foundPalette)
-  } else {
-    response.sendStatus(404)
+
+  database('palettes').select()
+    .then(palettes => {
+      let foundPalette = palettes.find(palette => palette.id === parseInt(id))
+      if(foundPalette) {
+        response.status(200).json(foundPalette)
+      } else {
+        response.sendStatus(404)
+      }
+    })
+    .catch(error => {
+      response.send(500).json({ error })
+    });
+});
+
+app.post('/api/v1/palettes', (request, response) => {
+  const palette = request.body;
+
+  for(let requiredParameter of ['name', 'color1', 'color2', 'color3', 'color4', 'color5', 'project_id']) {
+    if(!palette[requiredParameter]) {
+      return response
+        .status(422)
+        .send({ error: `Expected format: { name: <String>, color1: <String>, color2: <String>, color3: <String>, color4: <String>, color5: <String>, project_id: <Number> }. You're missing a "${requiredParameter}" property.` })
+    }
   }
+
+  database('palettes').insert(palette, 'id')
+    .then(palette => {
+      response.status(201).json({ id: palette[0] })
+    })
+    .catch(error => {
+      response.status(500).json({ error })
+    });
 })
 
-app.post('/palettes', (request, response) => {
-  //should generate a unique id
-  const id = app.locals.palettes.length + 1
-  //should add the unique id to the incoming request object
-  const palette = request.body
-  const postedObject = {id, ...palette}
-  //should push the new palette object into the app.locals.palettes array (with the associated project_id)
-  app.locals.palettes.push(postedObject)
-  response.sendStatus(201)
-  //add sad path (422)
+app.delete('/api/v1/palettes/:id', (request, response) => {
+  database('palettes').where('id', request.params.id).delete()
+    .then(palette => {
+      response.status(202).json({ id: palette[0] })
+    })
+    .catch(error => {
+      response.status(500).json({ error })
+    })
 })
 
-app.get('/projects', (request, response) => {
-  //should return an array of all of the app.locals.projects
-  response.status(200).json(app.locals.projects)
+app.get('/api/v1/projects', (request, response) => {
+  database('projects').select()
+    .then((projects) => {
+      response.status(200).json(projects)
+    })
+    .catch((error) => {
+      response.status(500).json({error});
+    });
 })
 
-app.get('/projects/:id', (request, response) => {
-  //should return a specific project object
+app.get('/api/v1/projects/:id', (request, response) => {
   const { id } = request.params
-  let foundProject = app.locals.projects.find(project => parseInt(id) === project.id)
-  if (foundProject) {
-    response.status(200).json(foundProject)
-  } else {
-    response.sendStatus(404)
-  }
+  database('projects').select()
+    .then((projects) => {
+      let foundProject = projects.find(project => project.id === parseInt(id));
+      if(foundProject) {
+        response.status(200).json(foundProject);
+      } else {
+        response.sendStatus(404);
+      }
+    })
+    .catch(error => {
+      response.status(500).json({error})
+    });
 })
 
-app.post('/projects', (request, response) => {
-  //should generate a unique id
-  const id = app.locals.projects.length + 1
-  //should add the unique id to the incoming request object
-  const project = request.body
-  const postedObject = {id, ...project}
-  //should push the new project object into the app.locals.projects array
-  app.locals.projects.push(postedObject)
-  response.status(201).json(app.locals.projects)
-  //sad path (422)
+app.post('/api/v1/projects', (request, response) => {
+  const project = request.body;
+
+  if (!project.name) {
+    return response.status(422)
+    .send({ error: `Expected format: { name: <String> }. You're missing a "name" property.`});
+  }
+
+  database('projects').insert(project, 'id')
+    .then(project => {
+      response.status(201).json({ id: project[0] })
+    })
+    .catch(error => {
+      response.status(500).json({error});
+    });
+})
+
+app.delete('/api/v1/projects/:id', (request, response) => {
+  database('palettes').where('project_id', request.params.id).delete()
+    .then(palette => {
+      response.status(202).json({  project_id: palette[0] })
+    })
+    .catch(error => {
+      response.status(500).json({ error })
+    })
+  database('projects').where('id', request.params.id).delete()
+    .then(project => {
+      response.status(202).json({ id: project[0] })
+    })
+    .catch(error => {
+      response.status(500).json({ error })
+    })
 })
 
 app.listen(app.get('port'), () => {

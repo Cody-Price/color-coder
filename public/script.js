@@ -36,6 +36,29 @@ const generateHex = () => {
   }
 }
 
+const fetchProjects = async () => {
+  const url = 'http://localhost:3000/api/v1/projects';
+  try {
+    const response = await fetch(url);
+    const result = await response.json();
+    return result;
+  } catch(error) {
+    console.log(error);
+  }
+}
+
+const populateSelectElement = async () => {
+  const projectsArray = await fetchProjects();
+  projectsArray.forEach(project => {
+    const newOption = document.createElement('option');
+    newOption.setAttribute('data-id', project.id)
+    newOption.innerText = project.name
+    dropdown.appendChild(newOption)
+  })
+}
+
+populateSelectElement()
+
 const generateRandomPalette = () => {
   if(leftLock.classList.contains('fa-unlock')) {
     let color1 = generateHex()
@@ -72,7 +95,6 @@ const generateRandomPalette = () => {
 generateRandomPalette()
 
 const generateProjectPalette = () => {
-  let paletteId = Date.now()
   let newProjectPalette = document.createElement('div')
   newProjectPalette.classList.add('project-palette')
   newProjectPalette.innerHTML = `
