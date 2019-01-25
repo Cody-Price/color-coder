@@ -37,7 +37,7 @@ const generateHex = () => {
 }
 
 const fetchProjects = async () => {
-  const url = 'http://localhost:3000/api/v1/projects';
+  const url = '/api/v1/projects';
   try {
     const response = await fetch(url);
     const result = await response.json();
