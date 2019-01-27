@@ -49,6 +49,7 @@ const fetchProjects = async () => {
 }
 
 const populateSelectElement = async () => {
+  dropdown.innerHTML = null
   const projectsArray = await fetchProjects();
   projectsArray.forEach(project => {
     const newOption = document.createElement('option');
@@ -61,6 +62,7 @@ const populateSelectElement = async () => {
 populateSelectElement()
 
 const populateExistingProjects = async () => {
+  projectContainer.innerHTML = null
   const projectsArray = await fetchProjects();
   projectsArray.forEach(project => {
     const newProjectCard = document.createElement('div')
@@ -267,12 +269,6 @@ const toggleLock = (e) => {
 
 const generateNewProject = async () => {
   let newProjectName = projectName.value
-  // let newCard = document.createElement('div')
-  // newCard.classList.add('project-card')
-  // newCard.innerHTML = `<h3>${newProjectName}</h3>`
-  // projectContainer.appendChild(newCard)
-  dropdown.innerHTML = ''
-  projectContainer.innerHTML = ''
   await saveProject(newProjectName)
   await populateExistingProjects()
   await populateSelectElement()
@@ -306,7 +302,22 @@ const deletePalette = async (id) => {
     }
     const response = await fetch(url, deleteObject)
     await response.json()
-    await populatePalettes()
+  } catch(error) {
+    console.log(error)
+  }  
+}
+
+const deleteProject = async (id) => {
+  const url = `/api/v1/projects/${id}`
+  try {
+    const deleteObject = {
+      headers: {
+        "content-type": "application/json; charset=UTF-8"
+      },
+      method: "DELETE"
+    }
+    const response = await fetch(url, deleteObject)
+    await response.json()
   } catch(error) {
     console.log(error)
   }  
@@ -324,5 +335,15 @@ window.addEventListener('click', (e) => {
   if (e.target.classList.contains('fa-trash-alt') && e.target.getAttribute('id') !== 'project-trash') {
     const id = parseInt(e.target.previousSibling.previousSibling.getAttribute('data-id'))
     deletePalette(id)
+    e.target.parentElement.parentElement.parentElement.remove()
+  }
+})
+window.addEventListener('click', async (e) => {
+  if (e.target.parentElement.classList.contains('row') && e.target.getAttribute('id') === 'project-trash') {
+
+    const id = parseInt(e.target.parentElement.parentElement.getAttribute('data-id'))
+    await deleteProject(id)
+    e.target.parentElement.parentElement.remove()
+    await populateSelectElement()
   }
 })
