@@ -24,6 +24,7 @@ const projectName = document.querySelector('.new-project-name-input');
 const newProjectButton = document.querySelector('.new-project-btn');
 const projectContainer = document.querySelector('.project-container');
 
+
 const generateHex = () => {
   const hexArray = [0,1,2,3,4,5,6,7,8,9,'A','B','C','D','E','F']
   let returnedHexArray = ['#']
@@ -77,7 +78,7 @@ const populateExistingProjects = async () => {
   })
 }
 
-populateExistingProjects()
+
 
 const generateRandomPalette = () => {
   if(leftLock.classList.contains('fa-unlock')) {
@@ -154,24 +155,79 @@ const postProjectPalette = async () => {
   matchingProject.childNodes[3].appendChild(newProjectPalette)
 }
 
-const populatePalettes = async () => {
+const fetchPalettes = async () => {
   const url = '/api/v1/palettes'
   try {
     const response = await fetch(url)
     const result = await response.json()
-    console.log(result.palettes)
+    return result.palettes
     result.palettes.forEach(palette => {
-      const projectNodes = Array.from(document.querySelectorAll('.project-card'))
+      console.log('hello')
+
+
+      let newProjectPalette = document.createElement('div')
+      newProjectPalette.classList.add('project-palette')
+      newProjectPalette.innerHTML = `
+        <label>${palette.name}</label>
+        <section class="project-card-palette-container">
+          <div class="sub-container">
+            <div class="sub" data-id="${palette.id}">
+              <div class="left-card-color card-color" style="background-color: ${palette.color1}"></div>
+              <div class="mid-card-left-color card-color" style="background-color: ${palette.color2}"></div>
+              <div class="mid-card-color card-color" style="background-color: ${palette.color3}"></div>
+              <div class="mid-card-right-color card-color" style="background-color: ${palette.color4}"></div>
+              <div class="right-card-color card-color" style="background-color: ${palette.color5}"></div>
+            </div>
+            <i class="fas fa-trash-alt"></i>
+          </div>
+        </section>
+      `
+
+
       const matchingProject = projectNodes.find(projectNode => {
+        debugger
         if (projectNode.getAttribute('data-id') === palette.project_id) {
           return projectNode
         }
       })
-      matchingProject.childNodes[3].appendChild(newProjectPalette)
+      // matchingProject.childNodes[3].appendChild(newProjectPalette)
     })
   } catch(error) {
     console.log(error)
   }
+}
+
+const populatePalettes = async () => {
+  await populateExistingProjects()
+  const projectNodes = Array.from(document.querySelectorAll('.project-card'))
+  const paletteArray = await fetchPalettes()
+  paletteArray.forEach(palette => {
+
+    let newProjectPalette = document.createElement('div')
+    newProjectPalette.classList.add('project-palette')
+    newProjectPalette.innerHTML = `
+      <label>${palette.name}</label>
+      <section class="project-card-palette-container">
+        <div class="sub-container">
+          <div class="sub" data-id="${palette.id}">
+            <div class="left-card-color card-color" style="background-color: ${palette.color1}"></div>
+            <div class="mid-card-left-color card-color" style="background-color: ${palette.color2}"></div>
+            <div class="mid-card-color card-color" style="background-color: ${palette.color3}"></div>
+            <div class="mid-card-right-color card-color" style="background-color: ${palette.color4}"></div>
+            <div class="right-card-color card-color" style="background-color: ${palette.color5}"></div>
+          </div>
+          <i class="fas fa-trash-alt"></i>
+        </div>
+      </section>
+    `
+
+    const matchingProject = projectNodes.find(projectNode => {
+      if (projectNode.getAttribute('data-id') == palette.project_id) {
+        return projectNode
+      }
+    })
+    matchingProject.childNodes[3].appendChild(newProjectPalette)
+  })
 }
 
 populatePalettes()
@@ -239,6 +295,23 @@ const saveProject = async (name) => {
   }
 }
 
+const deletePalette = async (id) => {
+  const url = `/api/v1/palettes/${id}`
+  try {
+    const deleteObject = {
+      headers: {
+        "content-type": "application/json; charset=UTF-8"
+      },
+      method: "DELETE"
+    }
+    const response = await fetch(url, deleteObject)
+    await response.json()
+    await populatePalettes()
+  } catch(error) {
+    console.log(error)
+  }  
+}
+
 newProjectButton.addEventListener('click', generateNewProject)
 saveButton.addEventListener('click', postProjectPalette)
 generatePaletteButton.addEventListener('click', generateRandomPalette)
@@ -247,3 +320,9 @@ midLeftColor.addEventListener('click', toggleLock)
 midColor.addEventListener('click', toggleLock)
 midRightColor.addEventListener('click', toggleLock)
 rightColor.addEventListener('click', toggleLock)
+window.addEventListener('click', (e) => {
+  if (e.target.classList.contains('fa-trash-alt') && e.target.getAttribute('id') !== 'project-trash') {
+    const id = parseInt(e.target.previousSibling.previousSibling.getAttribute('data-id'))
+    deletePalette(id)
+  }
+})
