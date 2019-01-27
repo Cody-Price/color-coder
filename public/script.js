@@ -41,7 +41,6 @@ const fetchProjects = async () => {
   try {
     const response = await fetch(url);
     const result = await response.json();
-    console.log(result)
     return result;
   } catch(error) {
     console.log(error);
@@ -52,13 +51,33 @@ const populateSelectElement = async () => {
   const projectsArray = await fetchProjects();
   projectsArray.forEach(project => {
     const newOption = document.createElement('option');
-    newOption.setAttribute('data-id', project.id)
+    newOption.setAttribute('value', project.id)
     newOption.innerText = project.name
     dropdown.appendChild(newOption)
   })
 }
 
 populateSelectElement()
+
+const populateExistingProjects = async () => {
+  const projectsArray = await fetchProjects();
+  projectsArray.forEach(project => {
+    const newProjectCard = document.createElement('div')
+    newProjectCard.setAttribute('class', 'project-card')
+    newProjectCard.setAttribute('data-id', project.id)
+    newProjectCard.innerHTML = `
+        <div class="row">
+          <h3>${project.name}</h3><i class="fas fa-trash-alt" id="project-trash"></i>
+        </div>
+        <section class="card-palette-container">
+
+        </section>
+      `
+    projectContainer.appendChild(newProjectCard)
+  })
+}
+
+populateExistingProjects()
 
 const generateRandomPalette = () => {
   if(leftLock.classList.contains('fa-unlock')) {
@@ -95,14 +114,27 @@ const generateRandomPalette = () => {
 
 generateRandomPalette()
 
-const generateProjectPalette = () => {
+const postProjectPalette = async () => {
+  const url = '/api/v1/palettes'
+  const data = grabPaletteObject()
+  const postObject = {
+    headers: {
+      "content-type": "application/json; charset=UTF-8"
+    },
+    body: JSON.stringify(data),
+    method: "POST"
+  }
+  const response = await fetch(url, postObject)
+  const result = await response.json()
+
+
   let newProjectPalette = document.createElement('div')
   newProjectPalette.classList.add('project-palette')
   newProjectPalette.innerHTML = `
     <label>${paletteName.value}</label>
     <section class="project-card-palette-container">
       <div class="sub-container">
-        <div class="sub" data-id="${paletteId}">
+        <div class="sub" data-id="${result.id}">
           <div class="left-card-color card-color" style="background-color: ${leftP.innerText}"></div>
           <div class="mid-card-left-color card-color" style="background-color: ${midLeftP.innerText}"></div>
           <div class="mid-card-color card-color" style="background-color: ${midP.innerText}"></div>
@@ -113,19 +145,47 @@ const generateProjectPalette = () => {
       </div>
     </section>
   `
-  document.querySelector('.card-palette-container').appendChild(newProjectPalette)
+  const projectNodes = Array.from(document.querySelectorAll('.project-card'))
+  const matchingProject = projectNodes.find(projectNode => {
+    if (projectNode.getAttribute('data-id') === data.project_id) {
+      return projectNode
+    }
+  })
+  matchingProject.childNodes[3].appendChild(newProjectPalette)
 }
+
+const populatePalettes = async () => {
+  const url = '/api/v1/palettes'
+  try {
+    const response = await fetch(url)
+    const result = await response.json()
+    console.log(result.palettes)
+    result.palettes.forEach(palette => {
+      const projectNodes = Array.from(document.querySelectorAll('.project-card'))
+      const matchingProject = projectNodes.find(projectNode => {
+        if (projectNode.getAttribute('data-id') === palette.project_id) {
+          return projectNode
+        }
+      })
+      matchingProject.childNodes[3].appendChild(newProjectPalette)
+    })
+  } catch(error) {
+    console.log(error)
+  }
+}
+
+populatePalettes()
 
 const grabPaletteObject = () => {
   if (paletteName.value !== '') {
-    generateProjectPalette()
     return {
       name: paletteName.value,
       color1: leftP.innerText,
       color2: midLeftP.innerText,
       color3: midP.innerText,
       color4: midRightP.innerText,
-      color5: rightP.innerText
+      color5: rightP.innerText,
+      project_id: dropdown.value
     }
   }
 }
@@ -149,16 +209,38 @@ const toggleLock = (e) => {
   }
 }
 
-const generateNewProject = () => {
+const generateNewProject = async () => {
   let newProjectName = projectName.value
-  let newCard = document.createElement('div')
-  newCard.classList.add('project-card')
-  newCard.innerHTML = `<h3>${newProjectName}</h3>`
-  projectContainer.appendChild(newCard)
+  // let newCard = document.createElement('div')
+  // newCard.classList.add('project-card')
+  // newCard.innerHTML = `<h3>${newProjectName}</h3>`
+  // projectContainer.appendChild(newCard)
+  dropdown.innerHTML = ''
+  projectContainer.innerHTML = ''
+  await saveProject(newProjectName)
+  await populateExistingProjects()
+  await populateSelectElement()
+}
+
+const saveProject = async (name) => {
+  const url = '/api/v1/projects'
+  try {
+    const postObject = {
+      headers: {
+        "content-type": "application/json; charset=UTF-8"
+      },
+      body: JSON.stringify({name}),
+      method: "POST"
+    }
+    const response = await fetch(url, postObject)
+    return await response.json()
+  } catch(error) {
+    console.log(error)
+  }
 }
 
 newProjectButton.addEventListener('click', generateNewProject)
-saveButton.addEventListener('click', grabPaletteObject)
+saveButton.addEventListener('click', postProjectPalette)
 generatePaletteButton.addEventListener('click', generateRandomPalette)
 leftColor.addEventListener('click', toggleLock)
 midLeftColor.addEventListener('click', toggleLock)

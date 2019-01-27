@@ -247,6 +247,20 @@ h3 {
   font-size: 30px;
 }
 
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+#project-trash {
+  font-size: 1.6vw;
+  position: relative;
+  top: 2px;
+  left: -4px;
+}
+
 .project-palette {
   width: 44%;
   display: flex;
