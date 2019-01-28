@@ -68,8 +68,8 @@ app.post('/api/v1/projects', (request, response) => {
   if (project.name) {
     database('projects').select('name')
       .then(projectNames => {
-        const names = projectNames.map(project => project.name)
-        if (names.includes(project.name)) {
+        const names = projectNames.map(project => project.name.toLowerCase())
+        if (names.includes(project.name.toLowerCase())) {
           response.status(409).json({ error: 'Project name already exists, please pick a different project name.' });
         } else {
           database('projects').insert(project, 'id')

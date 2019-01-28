@@ -16,9 +16,9 @@ const midLock = document.querySelector('.mid-lock')
 const midRightLock = document.querySelector('.mid-right-lock')
 const rightLock = document.querySelector('.right-lock')
 
-const errorPage = document.querySelector('error-page');
-const errorMessage = document.querySelector('error-message');
-const errorBtn = document.querySelector('clear-error-btn');
+const errorPage = document.querySelector('.error-page');
+const errorMessage = document.querySelector('.error-message');
+const errorBtn = document.querySelector('.clear-error-btn');
 const generatePaletteButton = document.querySelector('.generate');
 const dropdown = document.querySelector('.dropdown');
 const paletteName = document.querySelector('.user-palette-name-input');
@@ -259,8 +259,9 @@ const saveProject = async (name) => {
     }
     const response = await fetch(url, postObject)
     const result = await response.json()
-    if (result.error) {
-      
+    if(result.error) {
+      errorPage.setAttribute('style', 'display: block')
+      errorMessage.innerText = result.error
     }
   } catch(error) {
     console.log('catch error:', error)
@@ -299,6 +300,12 @@ const deleteProject = async (id) => {
   }  
 }
 
+const clearErrorPage = () => {
+  errorPage.setAttribute('style', 'display: none')
+  errorMessage.innerText = ''
+}
+
+errorBtn.addEventListener('click', clearErrorPage)
 newProjectButton.addEventListener('click', generateNewProject)
 saveButton.addEventListener('click', postProjectPalette)
 generatePaletteButton.addEventListener('click', generateRandomPalette)
