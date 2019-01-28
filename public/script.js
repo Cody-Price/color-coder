@@ -26,6 +26,7 @@ const saveButton = document.querySelector('.save-btn');
 const projectName = document.querySelector('.new-project-name-input');
 const newProjectButton = document.querySelector('.new-project-btn');
 const projectContainer = document.querySelector('.project-container');
+const paletteContainer = document.querySelector('.palette-container');
 
 
 const generateHex = () => {
@@ -40,6 +41,11 @@ const generateHex = () => {
   }
 }
 
+const displayError = (message) => {
+  errorPage.setAttribute('style', 'display: block')
+  errorMessage.innerText = message
+}
+
 const fetchProjects = async () => {
   const url = '/api/v1/projects';
   try {
@@ -52,7 +58,7 @@ const fetchProjects = async () => {
 }
 
 const populateSelectElement = async () => {
-  dropdown.innerHTML = ''
+  dropdown.innerHTML = '<option value="" disabled selected>SELECT A PROJECT</option>'
   const projectsArray = await fetchProjects();
   projectsArray.forEach(project => {
     const newOption = document.createElement('option');
@@ -120,44 +126,60 @@ const generateRandomPalette = () => {
 
 generateRandomPalette()
 
+const flashPalette = () => {
+  paletteContainer.classList.add('white')
+  setTimeout(() => {
+    paletteContainer.classList.remove('white')
+  }, 600);
+}
+
 const postProjectPalette = async () => {
-  const url = '/api/v1/palettes'
-  const data = grabPaletteObject()
-  const postObject = {
-    headers: {
-      "content-type": "application/json; charset=UTF-8"
-    },
-    body: JSON.stringify(data),
-    method: "POST"
-  }
-  const response = await fetch(url, postObject)
-  const result = await response.json()
-
-
-  let newProjectPalette = document.createElement('div')
-  newProjectPalette.classList.add('project-palette')
-  newProjectPalette.innerHTML = `
-    <label>${paletteName.value}</label>
-    <section class="project-card-palette-container">
-      <div class="sub-container">
-        <div class="sub" data-id="${result.id}">
-          <div class="left-card-color card-color" style="background-color: ${leftP.innerText}"></div>
-          <div class="mid-card-left-color card-color" style="background-color: ${midLeftP.innerText}"></div>
-          <div class="mid-card-color card-color" style="background-color: ${midP.innerText}"></div>
-          <div class="mid-card-right-color card-color" style="background-color: ${midRightP.innerText}"></div>
-          <div class="right-card-color card-color" style="background-color: ${rightP.innerText}"></div>
-        </div>
-        <i class="fas fa-trash-alt"></i>
-      </div>
-    </section>
-  `
-  const projectNodes = Array.from(document.querySelectorAll('.project-card'))
-  const matchingProject = projectNodes.find(projectNode => {
-    if (projectNode.getAttribute('data-id') === data.project_id) {
-      return projectNode
+  if (paletteName.value !== '' && dropdown.value !== '') {
+    flashPalette()
+    const url = '/api/v1/palettes'
+    const data = grabPaletteObject()
+    const postObject = {
+      headers: {
+        "content-type": "application/json; charset=UTF-8"
+      },
+      body: JSON.stringify(data),
+      method: "POST"
     }
-  })
-  matchingProject.childNodes[3].appendChild(newProjectPalette)
+    const response = await fetch(url, postObject)
+    const result = await response.json()
+  
+  
+    let newProjectPalette = document.createElement('div')
+    newProjectPalette.classList.add('project-palette')
+    newProjectPalette.innerHTML = `
+      <label>${paletteName.value}</label>
+      <section class="project-card-palette-container">
+        <div class="sub-container">
+          <div class="sub" data-id="${result.id}">
+            <div class="left-card-color card-color" style="background-color: ${leftP.innerText}">${leftP.innerText}</div>
+            <div class="mid-card-left-color card-color" style="background-color: ${midLeftP.innerText}">${midLeftP.innerText}</div>
+            <div class="mid-card-color card-color" style="background-color: ${midP.innerText}">${midP.innerText}</div>
+            <div class="mid-card-right-color card-color" style="background-color: ${midRightP.innerText}">${midRightP.innerText}</div>
+            <div class="right-card-color card-color" style="background-color: ${rightP.innerText}">${rightP.innerText}</div>
+          </div>
+          <i class="fas fa-trash-alt"></i>
+        </div>
+      </section>
+    `
+    const projectNodes = Array.from(document.querySelectorAll('.project-card'))
+    const matchingProject = projectNodes.find(projectNode => {
+      if (projectNode.getAttribute('data-id') === data.project_id) {
+        return projectNode
+      }
+    })
+    matchingProject.childNodes[3].appendChild(newProjectPalette)
+  } else if (dropdown.value === '' && paletteName.value === '') {
+    displayError('Please select a project and enter a name for your palette.')
+  } else if (dropdown.value === '') {
+    displayError('Please select a project for your palette to attach to.')
+  } else {
+    displayError('Please enter a name for your palette.')
+  }
 }
 
 const fetchPalettes = async () => {
@@ -184,11 +206,11 @@ const populatePalettes = async () => {
       <section class="project-card-palette-container">
         <div class="sub-container">
           <div class="sub" data-id="${palette.id}">
-            <div class="left-card-color card-color" style="background-color: ${palette.color1}"></div>
-            <div class="mid-card-left-color card-color" style="background-color: ${palette.color2}"></div>
-            <div class="mid-card-color card-color" style="background-color: ${palette.color3}"></div>
-            <div class="mid-card-right-color card-color" style="background-color: ${palette.color4}"></div>
-            <div class="right-card-color card-color" style="background-color: ${palette.color5}"></div>
+            <div class="left-card-color card-color" style="background-color: ${palette.color1}">${palette.color1}</div>
+            <div class="mid-card-left-color card-color" style="background-color: ${palette.color2}">${palette.color2}</div>
+            <div class="mid-card-color card-color" style="background-color: ${palette.color3}">${palette.color3}</div>
+            <div class="mid-card-right-color card-color" style="background-color: ${palette.color4}">${palette.color4}</div>
+            <div class="right-card-color card-color" style="background-color: ${palette.color5}">${palette.color5}</div>
           </div>
           <i class="fas fa-trash-alt"></i>
         </div>
@@ -260,8 +282,7 @@ const saveProject = async (name) => {
     const response = await fetch(url, postObject)
     const result = await response.json()
     if(result.error) {
-      errorPage.setAttribute('style', 'display: block')
-      errorMessage.innerText = result.error
+      displayError(result.error)
     }
   } catch(error) {
     console.log('catch error:', error)
