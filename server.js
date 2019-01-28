@@ -15,65 +15,6 @@ app.use(express.static('public'))
 app.set('port', process.env.PORT || 3000);
 app.locals.title = 'COLOR CODER';
 
-app.locals.projects = [
-  {
-    id: 1,
-    name: 'project1'
-  },
-  {
-    id: 2,
-    name: 'project2'
-  },
-  {
-    id: 3,
-    name: 'project3'
-  }
-]
-
-app.locals.palettes = [
-  {
-    id: 1,
-    name: 'warm',
-    color1: '#ffffff',
-    color2: '#ffcffc',
-    color3: '#cffcff',
-    color4: '#fcffcf',
-    color5: '#cccccc',
-    project_id: 1
-  },
-  {
-    id: 2,
-    name: 'cool',
-    color1: '#000000',
-    color2: '#ffcffc',
-    color3: '#cffcff',
-    color4: '#fcffcf',
-    color5: '#cccccc',
-    project_id: 3
-  },
-  {
-    id: 3,
-    name: 'luke warm',
-    color1: '#ffffff',
-    color2: '#0123456',
-    color3: '#cffcff',
-    color4: '#fcffcf',
-    color5: '#cccccc',
-    project_id: 2
-  },
-  {
-    id: 4,
-    name: 'ice cold',
-    color1: '#ffffff',
-    color2: '#ffcffc',
-    color3: '#777777',
-    color4: '#fcffcf',
-    color5: '#cccccc',
-    project_id: 2
-  }
-]
-
-
 app.get('/api/v1/palettes', (request, response) => {
   database('palettes').select()
     .then(palettes => {
@@ -101,42 +42,45 @@ app.get('/api/v1/palettes/:id', (request, response) => {
     });
   });
   
-  app.post('/api/v1/palettes', (request, response) => {
-    const palette = request.body;
-    
-    for(let requiredParameter of ['name', 'color1', 'color2', 'color3', 'color4', 'color5', 'project_id']) {
-      if(!palette[requiredParameter]) {
-        return response
-        .status(422)
-        .send({ error: `Expected format: { name: <String>, color1: <String>, color2: <String>, color3: <String>, color4: <String>, color5: <String>, project_id: <Number> }. You're missing a "${requiredParameter}" property.` })
-      }
-    }
-    
-    database('palettes').insert(palette, 'id')
-    .then(palette => {
-      response.status(201).json({ id: palette[0] })
-    })
-    .catch(error => {
-      response.status(500).json({ error })
-    });
-  })
+app.post('/api/v1/palettes', (request, response) => {
+  const palette = request.body;
   
+  for(let requiredParameter of ['name', 'color1', 'color2', 'color3', 'color4', 'color5', 'project_id']) {
+    if(!palette[requiredParameter]) {
+      return response
+      .status(422)
+      .send({ error: `Expected format: { name: <String>, color1: <String>, color2: <String>, color3: <String>, color4: <String>, color5: <String>, project_id: <Number> }. You're missing a "${requiredParameter}" property.` })
+    }
+  }
+  
+  database('palettes').insert(palette, 'id')
+  .then(palette => {
+    response.status(201).json({ id: palette[0] })
+  })
+  .catch(error => {
+    response.status(500).json({ error })
+  });
+})
+
+
 app.post('/api/v1/projects', (request, response) => {
   const project = request.body;
-
-  if (!project.name) {
-    return response.status(422)
-    .send({ error: `Expected format: { name: <String> }. You're missing a "name" property.`});
+  if (project.name) {
+    database('projects').select('name')
+      .then(projectNames => {
+        const names = projectNames.map(project => project.name)
+        if (names.includes(project.name)) {
+          response.status(409).json({ error: 'Project name already exists, please pick a different project name.' });
+        } else {
+          database('projects').insert(project, 'id')
+            .then(project => response.status(201).json({ id: project[0] }))
+        }
+      })
+      .catch(error => response.status(500).json({error}));
+  } else {
+    response.status(422).json({ error: `Expected format: { name: <String> }. You're missing a "name" property.`});
   }
-
-  database('projects').insert(project, 'id')
-    .then(project => {
-      response.status(201).json({ id: project[0] })
-    })
-    .catch(error => {
-      response.status(500).json({error});
-    });
-})
+});
 
 app.delete('/api/v1/palettes/:id', (request, response) => {
   database('palettes').where('id', request.params.id).delete()

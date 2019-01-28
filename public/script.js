@@ -16,6 +16,9 @@ const midLock = document.querySelector('.mid-lock')
 const midRightLock = document.querySelector('.mid-right-lock')
 const rightLock = document.querySelector('.right-lock')
 
+const errorPage = document.querySelector('error-page');
+const errorMessage = document.querySelector('error-message');
+const errorBtn = document.querySelector('clear-error-btn');
 const generatePaletteButton = document.querySelector('.generate');
 const dropdown = document.querySelector('.dropdown');
 const paletteName = document.querySelector('.user-palette-name-input');
@@ -49,7 +52,7 @@ const fetchProjects = async () => {
 }
 
 const populateSelectElement = async () => {
-  dropdown.innerHTML = null
+  dropdown.innerHTML = ''
   const projectsArray = await fetchProjects();
   projectsArray.forEach(project => {
     const newOption = document.createElement('option');
@@ -62,7 +65,7 @@ const populateSelectElement = async () => {
 populateSelectElement()
 
 const populateExistingProjects = async () => {
-  projectContainer.innerHTML = null
+  projectContainer.innerHTML = ''
   const projectsArray = await fetchProjects();
   projectsArray.forEach(project => {
     const newProjectCard = document.createElement('div')
@@ -163,37 +166,6 @@ const fetchPalettes = async () => {
     const response = await fetch(url)
     const result = await response.json()
     return result.palettes
-    result.palettes.forEach(palette => {
-      console.log('hello')
-
-
-      let newProjectPalette = document.createElement('div')
-      newProjectPalette.classList.add('project-palette')
-      newProjectPalette.innerHTML = `
-        <label>${palette.name}</label>
-        <section class="project-card-palette-container">
-          <div class="sub-container">
-            <div class="sub" data-id="${palette.id}">
-              <div class="left-card-color card-color" style="background-color: ${palette.color1}"></div>
-              <div class="mid-card-left-color card-color" style="background-color: ${palette.color2}"></div>
-              <div class="mid-card-color card-color" style="background-color: ${palette.color3}"></div>
-              <div class="mid-card-right-color card-color" style="background-color: ${palette.color4}"></div>
-              <div class="right-card-color card-color" style="background-color: ${palette.color5}"></div>
-            </div>
-            <i class="fas fa-trash-alt"></i>
-          </div>
-        </section>
-      `
-
-
-      const matchingProject = projectNodes.find(projectNode => {
-        debugger
-        if (projectNode.getAttribute('data-id') === palette.project_id) {
-          return projectNode
-        }
-      })
-      // matchingProject.childNodes[3].appendChild(newProjectPalette)
-    })
   } catch(error) {
     console.log(error)
   }
@@ -272,6 +244,7 @@ const generateNewProject = async () => {
   await saveProject(newProjectName)
   await populateExistingProjects()
   await populateSelectElement()
+  await populatePalettes()
 }
 
 const saveProject = async (name) => {
@@ -285,9 +258,12 @@ const saveProject = async (name) => {
       method: "POST"
     }
     const response = await fetch(url, postObject)
-    return await response.json()
+    const result = await response.json()
+    if (result.error) {
+      
+    }
   } catch(error) {
-    console.log(error)
+    console.log('catch error:', error)
   }
 }
 
